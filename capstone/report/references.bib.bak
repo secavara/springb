@@ -1,0 +1,25 @@
+% Encoding: windows-1252
+
+@Electronic{Daniels2018,
+  author       = {Noah Daniels},
+  month        = jul,
+  year         = {2018},
+  title        = {Seattle Observed Monthly Rain Gauge Accumulations},
+  language     = {English},
+  organization = {Kaggle},
+  note         = {Version 16. Retrieved August 20, 2018.},
+  url          = {https://www.kaggle.com/city-of-seattle/seattle-observed-monthly-rain-gauge-accumulations/version/16},
+}
+
+@Electronic{FireData,
+  author       = {City of Seattle Fire Department Management Information Systems},
+  month        = sep,
+  year         = {2018},
+  title        = {Seattle Fire 911 Calls from 3/1/2010 to 3/1/2011},
+  language     = {English},
+  organization = {City of Seattle Open Data Portal},
+  note         = {Version: September 2, 2018 update. Retrieved September 2, 2018.},
+  url          = {https://data.seattle.gov/Public-Safety/Seattle-Fire-911-Calls-from-3-1-2010-to-3-1-2011/d9j6-s59d},
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
