@@ -135,11 +135,37 @@ These monthly data goes from October 2002 to May 2017, containing measurements o
 
 {\large \href{https://data.seattle.gov/Public-Safety/Seattle-Fire-911-Calls-from-3-1-2010-to-3-1-2011/d9j6-s59d}{Seattle Fire 911 Calls} \cite{FireData2018}}
 
-Fire 911 calls from Seattle, from 2010 to 2011. It contains latitude and longitude of the location of the caller, in addition to date, time and type of call. This version corresponds to the September 2, 2018 update.
+Fire 911 calls in Seattle, from 2010 to 2011. It contains latitude and longitude of the location of the caller, in addition to date, time and type of call. This version corresponds to the September 2, 2018 update.
 
 Both sets of data are freely available for download, modification and distribution, under the license \href{https://creativecommons.org/publicdomain/zero/1.0/legalcode}{CC0 1.0}.
 
 \section{Data Wrangling and Exploratory Data Analysis}
+
+\subsection{Rain Data Set}
+
+With the help of Figure~\ref{gauges}, we can deduce an approximate location for the rain gauges (latitude and longitude) which we store in a dictionary. As we mentioned, only 17 rain gauges actually appear in the data set.
+
+We proceed to import the \verb|csv| file and read it as a data frame. The data has a date column, and a column for each 17 rain gauges. The date column shows that measurements were taken monthly, while the other columns indicate values for rain accumulation (in unknown units). These cover the period from November, 2002 to May, 2017.
+
+We first proceed to search for null values or outliers. There are no null or non-existent values in the data set and a direct plotting of all the data shows it to be fairly reasonable between the expectations of seasonal behavior. We can see this, for instance, in the case of the gauge RG01, as shown in Figure~\ref{RG01_Full}.
+
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{RG01_Full.pdf}
+\caption{Rain accumulations measured by the gauge RG01 for all years.}
+\label{RG01_Full}
+\end{figure}
+
+
+
+
+
+%\begin{verbatim}
+%csv
+%\end{verbatim}
+
+
 
 \section{Initial Findings}
 
