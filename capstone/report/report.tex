@@ -11,6 +11,9 @@
 \usepackage{array}
 \usepackage{url}
 \usepackage[nottoc,numbib]{tocbibind}
+\usepackage[format=plain,
+            labelfont={bf,it},
+            textfont=it]{caption}
 
 \definecolor{myblue}{RGB}{25,25,112}
 
@@ -88,7 +91,7 @@
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[scale=0.5]{Seattle_Pic.jpg}
+\includegraphics[scale=0.5]{figs/Seattle_Pic.jpg}
 %\caption{ }
 \label{pic}
 \end{figure}
@@ -107,7 +110,9 @@
 
 \newpage
 
-%\tableofcontents
+\tableofcontents
+
+\newpage
 
 \section{Problem}
 
@@ -126,7 +131,7 @@ These monthly data goes from October 2002 to May 2017, containing measurements o
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[scale=0.3]{SPU_DWW_RGs.jpg}
+\includegraphics[scale=0.3]{figs/SPU_DWW_RGs.jpg}
 \caption{Locations of rain gauges in Seattle. In reality, measurements for only 17 of these gauges are reported. This image is part of the data set in \cite{Daniels2018}.}
 \label{gauges}
 \end{figure}
@@ -147,29 +152,142 @@ With the help of Figure~\ref{gauges}, we can deduce an approximate location for 
 
 We proceed to import the \verb|csv| file and read it as a data frame. The data has a date column, and a column for each 17 rain gauges. The date column shows that measurements were taken monthly, while the other columns indicate values for rain accumulation (in unknown units). These cover the period from November, 2002 to May, 2017.
 
-We first proceed to search for null values or outliers. There are no null or non-existent values in the data set and a direct plotting of all the data shows it to be fairly reasonable between the expectations of seasonal behavior. We can see this, for instance, in the case of the gauge RG01, as shown in Figure~\ref{RG01_Full}.
-
+We first proceed to search for null values or outliers. There are no null or non-existent values in the data set and a direct plotting of all the data shows it to be fairly reasonable between the expectations of seasonal behavior. For instance, we can see this in the case of the gauge RG01, as shown in Figure~\ref{RG01_Full}.
 
 \begin{figure}[ht!]
 \centering
-\includegraphics[scale=0.6]{RG01_Full.pdf}
+\includegraphics[scale=0.6]{figs/RG01_Full.pdf}
 \caption{Rain accumulations measured by the gauge RG01 for all years.}
 \label{RG01_Full}
 \end{figure}
 
+We are interested in the correlation between these weather data and the frequency of fire emergency calls. The fire 911 calls data set covers only the period between 2010-07 and 2011-02, so we select the rain data corresponding to this interval in a separate data frame which we label \verb|df_rain_10_11_F|.
 
+\subsection{Fire 911 Calls}
 
+Let us consider the 911 fire calls data set. We can import it directly from the Seattle data website and read it as a data frame. It has 4 columns: \verb|Type| of the call, \verb|Datetime|, \verb|Latitude| and \verb|Longitde| of the caller. It has no null values.
 
+In order to see if the fire 911 data is correlated to the rain patterns, we have to associate their location with the location of the rain gauges. In order to do this, we write two functions:
 
-%\begin{verbatim}
-%csv
-%\end{verbatim}
+\begin{verbatim}
+great_circle_dist(lat1,lon1,lat2,lon2) 
+\end{verbatim}
 
+which computes the distance in kilometers between two points, given their latitude and longitude, and
+
+\begin{verbatim}
+closest_g(lat,lon) 
+\end{verbatim}
+
+which picks a point and finds the closest rain gauge. By using the latter, we can find the nearest gauge to each 911 caller. Effectively, this defines rain gauge regions as partitions or sectors that cover the city of Seattle. In a way, we are using a nearest neighbor approach indirectly. 
+
+We add a new column to the fire 911 calls data frame, \verb|C_gauge|, which gives the nearest rain gauge. In addition, by taking a look of the \verb|Type| column, we see that not all calls are explicitly related to fires. We select here the calls that have \verb|'Fire'| in the \verb|Type| description.
+
+We build a new data frame where we keep only the \verb|Datetime| and the closest gauge of these Fire calls, \verb|C_gauge|. We may also consider in this data set only month presicion for the \verb|Datetime| column, as we did with the rain data.
+
+This 2-column data frame, \verb|df_fire_10_11_S| already presents some interesting information. We can get a first visualization of the fire data, by displaying the totality of 911 fire calls for each gauge region, as shown in Figure~\ref{CallsvGauge}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/CallsvGauge.pdf}
+\caption{Totality of fire 911 calls in each gauge region.}
+\label{CallsvGauge}
+\end{figure}
+
+As we see, there are some gauge regions that seem to posses an abnormal number of fire 911 calls. In order to be sure that the functions we built to assign the nearest gauge are working, let us make a graphical double check. We can first grab the totality of the original data, plot their frequency using a 2D histogram which follows latitude and longitude as axes. Then we can add the locations of the gauges and directly observe that the anomalies are real. This corresponds to Figure~\ref{2DHist}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.7]{figs/2DHist.pdf}
+\caption{Distribution of fire 911 calls in the city of Seattle. In blue we see the locations of the rain gauges of the weather data set.}
+\label{2DHist}
+\end{figure}
+
+There are indeed accumulations of 911 calls around central Seattle, which explains the excessive counting of calls for specific rain gauges. It is interesting to see how the number of calls is enough to reproduce the coastal line in central Seattle.
+
+Since we are interested in the correlation between these data and the rain data set, we create a pivot table which aggregates the number of calls for each gauge region and each month. Looking at the data set, we find that the months corresponding to 2010-06 and 2011-03 have incomplete data, and therefore we remove them. We can do some basic visualization of these data.
+
+We can directly plot the number of 911 fire calls per gauge region per month, as seen in Figure~\ref{CallsGaugeMonth}. We again find that the gauge regions that we identified previously with abnormal number of calls display this behavior consistently through time.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.65]{figs/CallsGaugeMonth.pdf}
+\caption{Number of fire emergency calls per gauge region, per month. We see again that some sectors present an abnormal number of calls.}
+\label{CallsGaugeMonth}
+\end{figure}
 
 
 \section{Initial Findings}
 
-\section{Other Potentially Useful Data Sets}
+We explore a couple of potential effects in the manifestation of fire emergencies.
+
+\subsection{Rain and Fire}
+
+Let us consider the possibility of a correlation between rain patterns and number of 911 fire calls. Here we present several pieces of evidence against this hypothesis.
+
+As we found in the EDA process, the gauge regions RG20\_25 and RG05 display the opposite behaviors when it comes to number of fire 911 calls: the former has more than 12 times the number of calls than the latter. If rain was a dominant factor, we would expect a noticeable difference between the rain patterns for these 2 gauges in the dates of relevance. As we see in Figure~\ref{TwoPlots}, this does not seem to be case.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figs/TwoPlots.pdf}
+\caption{Rain accumulations in gauges RG20\_25 and RG05 for the years 2010 (left) and 2011 (right).}
+\label{TwoPlots}
+\end{figure}
+
+We can certainly find more compelling evidence. We have already organized our data in such a way that we can compare directly number of 911 fire calls and rain accumulation per gauge region per month. We must pair these data which lays in two distinct data frames. Once this is done, we can make a scatter plot of these points, which we see in Figure~\ref{NoCor}.
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.65]{figs/NoCor.pdf}
+\caption{Number of fire 911 calls paired with rain accumulations for all the months and rain gauges covered in the data sets.}
+\label{NoCor}
+\end{figure}
+
+There is little indication of a clear correlation. We also notice that there is a differentiation of rain accumulation in three distinct subgroups. Python corroborates our suspicions,
+
+\begin{verbatim}
+stats.linregress(rain_vals, fire_vals)
+>> LinregressResult(slope=-0.5492766384107909,
+                    intercept=38.98392793888603,
+                    rvalue=-0.03588547545789807,
+                    pvalue=0.678314825246058,
+                    stderr=1.3214179714394578)
+\end{verbatim}
+
+
+The correlation coefficient is 0.03, indicating that there is about 0.1\% of probability of a linear correlation. Even more, the $p$-value indicates that there is a 67.8\% in favor of a null hypothesis for absence of a correlation. This is well beyond any reasonable significance value. There is abundant evidence against the rain patters being relevant in determining the number of 911 fire calls.
+
+Since we found that the amount of rain accumulation per gauge seems to organize in 3 subgroups, we may be interested in finding the median for the number of 911 calls for each of these 3 subgroups. We may call them points with \emph{reduced}, \emph{medium} and \emph{large} rain accumulations, according to the ranges observed in the $x$ axis of Figure~\ref{NoCor}. The medians are respectively, 24, 19 and 24. Hence, even when slicing the data in these subsets, we can not find a particular behavior that correlates these two variables.
+
+\subsection{Time of the day and Fire}
+
+
+The previous exploration makes us think that instead of weather conditions, human activity might be the most relevant at exploring 911 fire calls. While we did not found significant difference between month to month data, in these data sets we might be able to see whether time of the day plays an important role in the number of 911 calls.
+
+Let us first do a basic counting of \emph{day time} and \emph{night time} calls, by which we will simply mean calls between 6 am and 6 pm for day time and the rest for the night. A first analysis shows a significant abundance of calls in day time relative to the amount of calls in night time. We explore this more clearly by slicing the data hourly.
+
+When we do this, we find an abnormal number of calls in the range between 7 and 8 am. In addition, we found no calls made between 12 pm and 1 am. Due to the difference in orders of magnitude, we do not expect these to be taken as reliable points. For now, we will remove these hours out of our analysis. It is unclear if there is a justification for this odd behavior, which may be due, for instance, to the procedure by which calls are reported or stored at these particular times.
+
+With these corrections taken into account, we find that there are in total 1383 fire emergency calls in day time and 1971 in night time. We can see this behavior more clearly in Figure~\ref{TimeOfTheDay}.
+
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.65]{figs/TimeOfTheDay.pdf}
+\caption{Number of fire 911 calls grouped by the hour of the call. There is spurious data for the periods between 7 and 8 am and between 12 pm and 1 am, which are hence missing in the plot.}
+\label{TimeOfTheDay}
+\end{figure}
+
+
+\section{The Story}
+
+We found no indication that rain accumulations and the number of fire 911 calls are correlated. Fire seems to be more directly related to human activity, as we found that about 53.5\% of the fire emergencies happen in central Seattle. It would be interesting to try to find a correlation of 911 fire calls with population density, if the data were available.
+
+Most of fire emergency calls happen during night time, which seems to reinforce the relevance of human factors over weather. Nevertheless, there is a small peak of activity in the midday, which could match a peak of solar activity.
+
+Policies for awareness and prevention of fires are a good approach to the reduction of fire related emergencies. These can be focused in fires related to urban activity, specially in highly populated regions of the city, and for events that unfold typically during night time.
+
+
 
 %\appendix
 
