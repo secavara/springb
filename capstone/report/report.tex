@@ -129,6 +129,8 @@ Governmental agencies might be interested in this study to refine strategies tha
 
 These monthly data goes from October 2002 to May 2017, containing measurements of 17 rain gauges located throughout Seattle city limits. There is no information on the units describing the amounts of rain. The locations of the rain gauges are given indirectly in a image (see Figure~\ref{gauges}).
 
+Freely available for download, modification and distribution, under the license \href{https://creativecommons.org/publicdomain/zero/1.0/legalcode}{CC0 1.0}.
+
 \begin{figure}[ht!]
 \centering
 \includegraphics[scale=0.3]{figs/SPU_DWW_RGs.jpg}
@@ -142,7 +144,11 @@ These monthly data goes from October 2002 to May 2017, containing measurements o
 
 Fire 911 calls in Seattle, from 2010 to 2011. It contains latitude and longitude of the location of the caller, in addition to date, time and type of call. This version corresponds to the September 2, 2018 update.
 
-Both sets of data are freely available for download, modification and distribution, under the license \href{https://creativecommons.org/publicdomain/zero/1.0/legalcode}{CC0 1.0}.
+Freely available for download, modification and distribution, under the license \href{https://creativecommons.org/publicdomain/zero/1.0/legalcode}{CC0 1.0}.
+
+{\large Holidays in Washington State in \href{https://www.officeholidays.com/countries/usa/regional.php?list_year=2010&list_region=washington}{2010} and \href{https://www.officeholidays.com/countries/usa/regional.php?list_year=2011&list_region=washington}{2011} \cite{OfficeHolidays2010,OfficeHolidays2011}}
+
+Federal and state holidays in 2010 and 2011 in the state of Washington. These were retrieved in October 10, 2018.
 
 \section{Data Wrangling and Exploratory Data Analysis}
 
@@ -152,7 +158,7 @@ With the help of Figure~\ref{gauges}, we can deduce an approximate location for 
 
 We proceed to import the \verb|csv| file and read it as a data frame. The data has a date column, and a column for each 17 rain gauges. The date column shows that measurements were taken monthly, while the other columns indicate values for rain accumulation (in unknown units). These cover the period from November, 2002 to May, 2017.
 
-We first proceed to search for null values or outliers. There are no null or non-existent values in the data set and a direct plotting of all the data shows it to be fairly reasonable between the expectations of seasonal behavior. For instance, we can see this in the case of the gauge RG01, as shown in Figure~\ref{RG01_Full}.
+We first proceed to search for null values or outliers. There are no null or non-existent values in the set and a direct plotting of all the data shows it to be fairly reasonable between the expectations of seasonal behavior. For instance, we can see this in the case of the gauge RG01, as shown in Figure~\ref{RG01_Full}.
 
 \begin{figure}[ht!]
 \centering
@@ -161,11 +167,11 @@ We first proceed to search for null values or outliers. There are no null or non
 \label{RG01_Full}
 \end{figure}
 
-We are interested in the correlation between these weather data and the frequency of fire emergency calls. The fire 911 calls data set covers only the period between 2010-07 and 2011-02, so we select the rain data corresponding to this interval in a separate data frame which we label \verb|df_rain_10_11_F|.
+We are interested in the correlation between these weather data and the frequency of fire emergency calls. The fire 911 calls set covers only the period between 2010-07 and 2011-02, so we select the rain data corresponding to this interval in a separate data frame which we label \verb|df_rain_10_11_F|.
 
 \subsection{Fire 911 Calls}
 
-Let us consider the 911 fire calls data set. We can import it directly from the Seattle data website and read it as a data frame. It has 4 columns: \verb|Type| of the call, \verb|Datetime|, \verb|Latitude| and \verb|Longitde| of the caller. It has no null values.
+Let us consider the 911 fire calls set. We can import it directly from the Seattle data website and read it as a data frame. It has 4 columns: \verb|Type| of the call, \verb|Datetime|, \verb|Latitude| and \verb|Longitde| of the caller. It has no null values.
 
 In order to see if the fire 911 data is correlated to the rain patterns, we have to associate their location with the location of the rain gauges. In order to do this, we write two functions:
 
@@ -183,7 +189,7 @@ which picks a point and finds the closest rain gauge. By using the latter, we ca
 
 We add a new column to the fire 911 calls data frame, \verb|C_gauge|, which gives the nearest rain gauge. In addition, by taking a look of the \verb|Type| column, we see that not all calls are explicitly related to fires. We select here the calls that have \verb|'Fire'| in the \verb|Type| description.
 
-We build a new data frame where we keep only the \verb|Datetime| and the closest gauge of these Fire calls, \verb|C_gauge|. We may also consider in this data set only month presicion for the \verb|Datetime| column, as we did with the rain data.
+We build a new data frame where we keep only the \verb|Datetime| and the closest gauge of these Fire calls, \verb|C_gauge|. We may also consider in this set only month precision for the \verb|Datetime| column, as we did with the rain data.
 
 This 2-column data frame, \verb|df_fire_10_11_S| already presents some interesting information. We can get a first visualization of the fire data, by displaying the totality of 911 fire calls for each gauge region, as shown in Figure~\ref{CallsvGauge}.
 
@@ -205,7 +211,7 @@ As we see, there are some gauge regions that seem to posses an abnormal number o
 
 There are indeed accumulations of 911 calls around central Seattle, which explains the excessive counting of calls for specific rain gauges. It is interesting to see how the number of calls is enough to reproduce the coastal line in central Seattle.
 
-Since we are interested in the correlation between these data and the rain data set, we create a pivot table which aggregates the number of calls for each gauge region and each month. Looking at the data set, we find that the months corresponding to 2010-06 and 2011-03 have incomplete data, and therefore we remove them. We can do some basic visualization of these data.
+Since we are interested in the correlation between calls and rain accumulations, we create a pivot table which aggregates the number of calls for each gauge region and each month. Looking at the set, we find that the months corresponding to 2010-06 and 2011-03 have incomplete data, and therefore we remove them. We can do some basic visualization of this information.
 
 We can directly plot the number of 911 fire calls per gauge region per month, as seen in Figure~\ref{CallsGaugeMonth}. We again find that the gauge regions that we identified previously with abnormal number of calls display this behavior consistently through time.
 
@@ -216,8 +222,13 @@ We can directly plot the number of 911 fire calls per gauge region per month, as
 \label{CallsGaugeMonth}
 \end{figure}
 
+\subsection{Off days}
 
-\section{Initial Findings}
+With the help of the information in \cite{OfficeHolidays2010,OfficeHolidays2011} on holidays in the state of Washington in 2010 and 2011, we can easily produce a list containing these dates. We store them as \verb|Timestamp| objects that we will be able to relate to the dates in the fire calls data set. We add the weekends to this list in order to complete a list called \verb|off_days|. Saturdays and sundays in a specific year can be produced with \verb|datetime| functions such as \verb|date| and \verb|timedelta|. With these we write a function \verb|all_x_days(x_day,year)|, which provides all the \verb|weekdays = x_day| (e.g. all mondays) in a specific year.
+
+We have in total 231 off days in 2010 and 2011 together, which represents 31.6\% of this period of time.
+
+\section{Findings and Analysis}
 
 We explore a couple of potential effects in the manifestation of fire emergencies.
 
@@ -234,7 +245,7 @@ As we found in the EDA process, the gauge regions RG20\_25 and RG05 display the 
 \label{TwoPlots}
 \end{figure}
 
-We can certainly find more compelling evidence. We have already organized our data in such a way that we can compare directly number of 911 fire calls and rain accumulation per gauge region per month. We must pair these data which lays in two distinct data frames. Once this is done, we can make a scatter plot of these points, which we see in Figure~\ref{NoCor}.
+We can certainly find more compelling evidence. We have already organized our data in such a way that we can compare directly number of 911 fire calls and rain accumulation per gauge region per month. We must pair this information which lays in two distinct data frames. Once this is done, we can make a scatter plot of these points, which we see in Figure~\ref{NoCor}.
 
 \begin{figure}[ht!]
 \centering
@@ -262,7 +273,7 @@ Since we found that the amount of rain accumulation per gauge seems to organize 
 \subsection{Time of the day and Fire}
 
 
-The previous exploration makes us think that instead of weather conditions, human activity might be the most relevant at exploring 911 fire calls. While we did not found significant difference between month to month data, in these data sets we might be able to see whether time of the day plays an important role in the number of 911 calls.
+The previous exploration makes us think that instead of weather conditions, human activity might be the most relevant at exploring 911 fire calls. While we did not found significant difference between month to month data, in these sets we might be able to see whether time of the day plays an important role in the number of 911 calls.
 
 Let us first do a basic counting of \emph{day time} and \emph{night time} calls, by which we will simply mean calls between 6 am and 6 pm for day time and the rest for the night. A first analysis shows a significant abundance of calls in day time relative to the amount of calls in night time. We explore this more clearly by slicing the data hourly.
 
