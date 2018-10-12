@@ -226,7 +226,7 @@ We can directly plot the number of 911 fire calls per gauge region per month, as
 
 With the help of the information in \cite{OfficeHolidays2010,OfficeHolidays2011} on holidays in the state of Washington in 2010 and 2011, we can easily produce a list containing these dates. We store them as \verb|Timestamp| objects that we will be able to relate to the dates in the fire calls data set. We add the weekends to this list in order to complete a list called \verb|off_days|. Saturdays and sundays in a specific year can be produced with \verb|datetime| functions such as \verb|date| and \verb|timedelta|. With these we write a function \verb|all_x_days(x_day,year)|, which provides all the \verb|weekdays = x_day| (e.g. all mondays) in a specific year.
 
-We have in total 231 off days in 2010 and 2011 together, which represents 31.6\% of this period of time.
+We have in total 231 off days in 2010 and 2011 together, which represents 31.6\% of this period of time. Together with the rain accumulations information, we build a data frame called \verb|df_fire_10_11_off| which contains the data on 911 fire calls together with the rain gauge region and a column that indicates whether the call happened in an off day.
 
 \section{Findings and Analysis}
 
@@ -279,7 +279,9 @@ Let us first do a basic counting of \emph{day time} and \emph{night time} calls,
 
 When we do this, we find an abnormal number of calls in the range between 7 and 8 am. In addition, we found no calls made between 12 pm and 1 am. Due to the difference in orders of magnitude, we do not expect these to be taken as reliable points. For now, we will remove these hours out of our analysis. It is unclear if there is a justification for this odd behavior, which may be due, for instance, to the procedure by which calls are reported or stored at these particular times.
 
-With these corrections taken into account, we find that there are in total 1383 fire emergency calls in day time and 1971 in night time. We can see this behavior more clearly in Figure~\ref{TimeOfTheDay}.
+With these corrections taken into account, we find that there are in total 1383 fire emergency calls in day time and 1971 in night time. These numbers show that it is the night time that has more number 911 fire calls after all.
+
+Nevertheless, we should explore the possibility that this is an artifice of the data sample. To study this alternative, we can test this proportion against a null hypothesis of a 50\% amount of night 911 fire calls. To do this we resort to a cumulative binomial distribution and compute the probability of obtaining the observed proportion or higher, assuming the null hypothesis. This $p$-value is of the order of $10^{-24}$, so it is vanishing in practice. This is well below any reasonable level of significance, which suggests we should reject the null hypothesis. This indicates that there are certainly more 911 fire calls in the night. We can see this behavior more clearly in Figure~\ref{TimeOfTheDay}.
 
 
 \begin{figure}[ht!]
@@ -289,12 +291,20 @@ With these corrections taken into account, we find that there are in total 1383 
 \label{TimeOfTheDay}
 \end{figure}
 
+\subsection{Off days and Fire}
+
+Let us explore the relation between off days and number of emergency calls. We can take a look of the raw number of 911 calls that happened in off days and in regular work days. We find that about 32.1\% of calls happen in off days. This is extremely close to the fraction of off-days to total number of days in 2010 and 2011 that we mentioned before (31.6\%).
+
+It is then reasonable to explore the possibility that the calls in off days simply follow the same proportion that one observes for off days versus the totality of days in 2010 and 2011. We can use this as a null hypothesis for a one-sample proportion test. If the null hypothesis can not be rejected, we would have an indication that whether the days are work days or not does not substantially influence the total number of emergency calls.
+
+By using a cumulative binomial distribution, we find that the probability of the proportion of off day-calls being as extreme or larger than the one we observed under the assumption of the null hypothesis is $p = 0.236$. This is well above any reasonable level of significance, which certainly does not allow us to reject the null hypothesis. This is an indicator that, if the calls are taken as a whole and not split into any categories, there seems to be no influence of the day being a work day or an off day in the number of 911 fire calls.
+
 
 \section{The Story}
 
 We found no indication that rain accumulations and the number of fire 911 calls are correlated. Fire seems to be more directly related to human activity, as we found that about 53.5\% of the fire emergencies happen in central Seattle. It would be interesting to try to find a correlation of 911 fire calls with population density, if the data were available.
 
-Most of fire emergency calls happen during night time, which seems to reinforce the relevance of human factors over weather. Nevertheless, there is a small peak of activity in the midday, which could match a peak of solar activity.
+Most of fire emergency calls happen during night time, which seems to reinforce the relevance of human factors over weather. Nevertheless, there is a small peak of activity in the midday, which could match a peak of solar activity. In addition, the proportion of total 911 fire calls is not affected by the day being a work day or not.
 
 Policies for awareness and prevention of fires are a good approach to the reduction of fire related emergencies. These can be focused in fires related to urban activity, specially in highly populated regions of the city, and for events that unfold typically during night time.
 
