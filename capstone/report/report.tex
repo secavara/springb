@@ -254,19 +254,16 @@ We can certainly find more compelling evidence. We have already organized our da
 \label{NoCor}
 \end{figure}
 
-There is little indication of a clear correlation. We also notice that there is a differentiation of rain accumulation in three distinct subgroups. Python corroborates our suspicions,
+%\begin{verbatim}
+%stats.linregress(rain_vals, fire_vals)
+%>> LinregressResult(slope=-0.5492766384107909,
+%                    intercept=38.98392793888603,
+%                    rvalue=-0.03588547545789807,
+%                    pvalue=0.678314825246058,
+%                    stderr=1.3214179714394578)
+%\end{verbatim}
 
-\begin{verbatim}
-stats.linregress(rain_vals, fire_vals)
->> LinregressResult(slope=-0.5492766384107909,
-                    intercept=38.98392793888603,
-                    rvalue=-0.03588547545789807,
-                    pvalue=0.678314825246058,
-                    stderr=1.3214179714394578)
-\end{verbatim}
-
-
-The correlation coefficient is -0.036, indicating that there is about 0.1\% of probability of a linear correlation. Even more, the $p$-value indicates that there is a 67.8\% in favor of a null hypothesis for absence of a correlation. This is well beyond any reasonable significance value. There is abundant evidence against the rain patterns being relevant in determining the number of 911 fire calls.
+There is little indication of a clear correlation. We also notice that there is a differentiation of rain accumulation in three distinct subgroups. Indeed, the correlation coefficient is -0.036, indicating that there is about 0.1\% of probability of a linear correlation. Even more, the $p$-value indicates that there is a 67.8\% in favor of a null hypothesis for absence of a correlation. This is well beyond any reasonable significance value. There is abundant evidence against the rain patterns being relevant in determining the number of 911 fire calls.
 
 Since we found that the amount of rain accumulation per gauge seems to organize in 3 subgroups, we may be interested in finding the median for the number of 911 calls for each of these 3 subgroups. We may call them points with \emph{reduced}, \emph{medium} and \emph{large} rain accumulations, according to the ranges observed in the $x$ axis of Figure~\ref{NoCor}. The medians are respectively, 24, 19 and 24. Hence, even when slicing the data in these subsets, we can not find a particular behavior that correlates these two variables.
 
@@ -301,26 +298,272 @@ By using a cumulative binomial distribution, we find that the probability of the
 
 \section{Machine Learning Analysis}
 
-\cite{Tibshirani}
+
+Let us take a look of these data sets from the point of view of machine learning techniques. To do this, we perform some additional data wrangling to set it ready for a clustering process. We focus fundamentally on the categories \verb|Longitude|, \verb|Latitude|, \verb|Off-Day| (which indicates whether the call happened in an off day) and a set of 27 columns which span the categorical information in the \verb|Type| column.
+
+\subsection{Clustering}
+
+We explore different approaches to the clustering of this data set. These are:
+
+1) Clustering only \verb|Longitude| and \verb|Latitude| of the emergency calls. We do this with \verb|MinMaxScaler| and \verb|KMeans| with distinct number of clusters $k$. We compute the most common parameters to decide the ideal $k$, such as inertia, silhouette, gap statistic and the gap criterium of \cite{Tibshirani}.
+
+2) We then tackle the whole data set with a \verb|PCA| dimensional reduction. By computing variance we try to establish the ideal dimension. This can be done with and without previously scaling with \verb|StandardScaler|. We find that in this case the model responds better without previous scaling.
+
+Looking at the behavior of the cumulative explained variance, one sees that 2D PCA represents accurately about 69\% of the data, and the elbow rule would suggest that the ideal dimension is likely 3, representing about 76\% of the data. We perform clustering with \verb|MinMaxScaler| and \verb|KMeans| of the projected 2D and 3D data, using the same parameters we mentioned in 1) to establish the ideal $k$.
+
+3) Finally, we also experiment with clustering all data without using PCA. Here we do this with \verb|MinMaxScaler| and \verb|KMeans|, testing, as before, different possible $k$'s.
+
+An in depth analysis of these distinct approaches and related plots can be found in Appendix~\ref{ClAn}.
+
+\subsection{A Clustering Story}
 
 
-\section{The Story}
+With the help of the routines we implemented, we can establish some interesting points regarding these data. For presentation purposes, we leave the graphical study of this story to the Appendix~\ref{ClFePl}, from which we are deriving the following observations.
 
-We found no indication that rain accumulations and the number of fire 911 calls are correlated. Fire seems to be more directly related to human activity, as we found that about 53.5\% of the fire emergencies happen in central Seattle. It would be interesting to try to find a correlation of 911 fire calls with population density, if the data were available.
+Let us start with the clustering location only, in which we intentionally limit ourselves to a subset of the data. By doing so, we have the opportunity to present a data-based method to establish a sectorization of the city, based on 911 calls. This in itself is useful as one may be interested in distributing resources to deal with these fire emergencies based solely on the raw amount of calls. Unsurprisingly, the distributions of latitudes and longitudes are well localized for this type of clustering.
+
+The proportion of off day calls in each cluster is relatively uniform throughout the whole city, oscillating between 30\% and 35\%. This goes along the expectations of the exploratory data analysis we made for the totality of calls. When we go to the data on type of calls, we verify that central Seattle (mostly covered by cluster 3) is a priority in most of the categories. Automatic fire alarms are the biggest component of emergency calls, and both buildings and cars are important locations in fire production. Together with central Seattle, a significant percentage of emergency calls is found to come from the north in all categories.
+
+We then moved to analyzing the totality of data with dimensional reduction. We first attempted to scale the data before performing a PCA fit, but we found that it required a really high dimension to produce an effective description of the data. Instead, we decided to use PCA without previously scaling, and the performance was much better. Looking at the behavior of the cumulative explained variance, one sees that 2D PCA represents accurately about 69\% of the data, and the elbow rule would suggest that the ideal dimension is likely 3, representing about 76\% of the data. We then performed clustering with the projected 2D and 3D data.
+
+Let us start with the 4 clusters we found with 2D PCA. The first notable observation is that the clusters align clearly in terms of the off day category; each cluster possesses a clear preference for work or off days. In addition, the second priority of these clustering seems to be the type of call category: the two most frequent types are directly covered by pairs of clusters. More specifically, cluster 0 are the off day calls that fill the most popular category, while cluster 1 are the weekday calls that fill the same category. We find the same structure for the second most popular category and clusters 2 and 3. Even more, clusters 0 and 1 fill all the remaining types of calls, again splitting the off and work day calls. These clustering is then very useful when it comes to studying the off day condition. Hence, when we go to the geographical distribution of the 4 clusters, we have a picture of the distribution of off/work day fire emergency calls.
+
+In the case of 3D PCA, we picked a 6-clusters model. These are also well aligned according to the off-day category. In addition, the first 4 clusters fill the two most popular call types as in the 2D PCA case. In contrast to the 2D case, clusters 0 and 1 fill all the remaining types of calls except for one: this one type is filled by the last clusters 4 and 5. The direct comparison between these two dimensions shows quite clearly some features of these clustering methods. PCA is clearly putting the priority on the features with a bigger ratio of \verb|True| (or 1) values, as is expected. This is why the less popular categories are the less aligned with respect to the clusters. Then, once we allow a higher PCA dimension or a bigger number of clusters, the next-to-most popular categories are aligned with the clusters. Consequently, these methods automatically and systematically select the most relevant features of a data set and allow us to study their rich intersections.
+
+Lastly, we approached the case of clustering without PCA. We used a 8-cluster model in this case. The first 4 clusters are following the same structure of the 4 clusters in the 2D PCA case. The remaining clusters then align more to the type of call category and mix week and off days. Thanks to that, we get to explore more clearly less popular type of calls, such as building and rubbish fires.
+
+
+\section{Concluding Remarks}
+
+We found no indication that rain accumulations and the number of fire 911 calls are correlated. Fire seems to be more directly related to human activity, as we found that about 53.5\% of the fire emergencies happen in central Seattle. It would be interesting to try to study a correlation of 911 fire calls with population density, if the data were available.
 
 Most of fire emergency calls happen during night time, which seems to reinforce the relevance of human factors over weather. Nevertheless, there is a small peak of activity in the midday, which could match a peak of solar activity. In addition, the proportion of total 911 fire calls is not affected by the day being a work day or not.
 
+With machine learning we obtained a data-based approach to the sectorization of the city in accordance to the number of fire emergency calls. This can be seen in the bottom-left plot of Figure~\ref{loc_parfigs}. We found that automatic fire alarms are the most significant cause of 911 responses, even after removing the false alarm calls. Car fires contribute substantially in these events and Central followed by North Seattle are a priority in the amount of emergencies. Coastal activity is secondary in the manifestation of 911 emergencies. The amount of rubbish fires is unfortunately notable, a subset of emergencies that can be specially treatable with a better observance of waste disposal.
+
 Policies for awareness and prevention of fires are a good approach to the reduction of fire related emergencies. These can be focused in fires related to urban activity, specially in highly populated regions of the city, and for events that unfold typically during night time.
-
-
-
-%\appendix
-
-%\section{Massive type IIA supergravity} \label{App:MIIA}
 
 \bibliography{references}
 %\bibliographystyle{plain}
 \bibliographystyle{utphys}
 
+
+\appendix
+
+\section{Clustering Analysis} \label{ClAn}
+
+We start with a clustering of only the location of the 911 emergency calls. This is registered in the columns \verb|Longitude| and \verb|Latitude|. Fisrt we pick store this location data in an array and scale it with \verb|MinMaxScaler|; this sets the range of data to [0,1]. We follow with the application of \verb|KMeans|. As we will do repeatedly, we use a series of parameters to determine which number of clusters is ideal. This includes inertia, average and individual silhouettes, gap and the gap criterium.
+
+1) Inertia corresponds to the sum of squared distances of samples to their closest cluster center and can be computed with the attribute \verb|inertia_|.
+
+2) \verb|silhouette_samples| takes into account both the distance of each point to points in its own cluster and to points in others to give a measure of how solid the structure found in a model really is. \verb|silhouette_score| computes an average over all points.
+
+3) The gap statistic $\mathrm{Gap}(k)$ compares the inertia of the model and the inertia of models built from random arrays of identical size and range. Ideally, high values of this parameter are preferred. In addition, we use the criterium which suggests that the ideal $k$ is the lowest one that satisfies \cite{Tibshirani}
+\begin{equation}\label{eq_gap_crit}
+\mathrm{Gap}(k) - \mathrm{Gap}(k+1) + s_{k+1} \geq 0 \, ,
+\end{equation}
+where $s_k$ is a (weighted) standard deviation of the random sample clusterings. We store these parameters and we plot them for all the clusterings we performed, as we show in the following subsections.
+
+Let us take a look of the plots in Figure~\ref{loc_parfigs}. The elbow rule in the inertias plot seems to make a case in favor of the values $k =5,6$. These also have high average silhouettes, together with $k=9$, although it should be mentioned that all values are below $0.5$. $k = 1, 2, 6, 10$ have high $\mathrm{Gap}(k)$, but when we take a look of the gap criterium (\ref{eq_gap_crit}), we see that $k=2$ is the lowest number of clusters that have a positive score. It should also be noticed that $k= 3, 6, 7$ also have a positive gap-criterium score. All factors being taken together, we decide to pick $k=6$ in this study, in the spirit of following fundamentally the silhouette and $\mathrm{Gap}(k)$ score. We can also see in Figure~\ref{loc_parfigs} a silhouette plot for $k=6$ that provides a graphical representation of individual scores.
+
+We then proceed to perform dimensional reduction via PCA. First, we consider the case of scaled data via \verb|StandardScaler|. After doing a PCA fit of the data, we study the behavior of explained variance for different number of dimensions. By looking at the top two plots in Figure~\ref{PCA_parfigs}, we find that this is not an ideal approach.  It seems to suggest that only high dimensionality can explain a significant percentage of the data behavior. On the other hand, we can instead make a PCA analysis without performing a scaling. The results can be seen in the middle two plots of Figure~\ref{PCA_parfigs}, where we find a more promising scenario. With 2 dimensions we can account for about 69\% of the data and with 3 we reach almost 76\%. The elbow rule indicates that $D=3$ is a good choice for dimensional reduction. We then proceed to avoid scaling in further studies of this data set.
+
+Interestingly, we have very well delimited clusters after performing these 2D and 3D reductions, as can be seen in the projected data in the bottom two plots of Figure~\ref{PCA_parfigs}. We then proceed to use a \verb|MinMaxScaler| $+$ \verb|KMeans| clustering on the reduced data and we follow the same steps we used in previous searches to pick the ideal $k$.
+
+In the 2D case, the gap criterium seems unreliable, as seen in Figure~\ref{PCA_2D_parfigs}. We conjecture that one possible reason behind this odd behavior  for this particular data set could be the radical change in scale for the inertias as $k$ reaches the elbow point. On the other hand, $\mathrm{Gap}(k)$ is monotonically increasing. The average silhouette and the elbow rule (see Figure~\ref{PCA_2D_parfigs}) both seem to point to the $k=4$ expected result, that we could have predicted from the 2D projected data. The silhouette and labeled data plots for $k=4$ show the desired clustering as shown in the bottom plots of Figure~\ref{PCA_2D_parfigs}.
+
+Now we proceed to perform PCA reduction to $D=3$. As in the prvious case, the gap criterium does not seem to be a useful parameter and $\mathrm{Gap}(k)$ is a monotonically increasing functionm as seen in Figure~\ref{PCA_3D_parfigs}. $k=6$ seems like a good choice from the point of view of the elbow rule in the inertias plot and the behavior of the silhouette score. This also seems reasonable from the point of view of the projected data scatter plot.
+
+Finally, we attempt to perform a clustering of the complete data set without performing a dimensional reduction. We follow the same \verb|MinMaxScaler| $+$ \verb|KMeans| recipe and perform the same steps to explore the ideal $k$. As we see in Figure~\ref{NO_PCA_parfigs}, while the gap behavior is again not ideal, the choices $k=6,8,9$ seem promising by looking at the inertias and the silhouettes. We pick $k=8$ and plot silhouettes for this value in Figure~\ref{NO_PCA_parfigs}.
+
+\clearpage
+
+\subsection{Clustering Location only}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figs/loc_parfigs_1.pdf}
+\includegraphics[width=\textwidth]{figs/loc_parfigs_2.pdf}
+\includegraphics[width=\textwidth]{figs/loc_clusfigs_6_cluster.pdf}
+\caption{Top 4 plots show the explored parameters in the clustering of location as functions of the number of clusters $k$. At the bottom, graphical distribution of clusters and silhouette plot for the chosen number of clusters, $k = 6$.}
+\label{loc_parfigs}
+\end{figure}
+
+\clearpage
+
+\subsection{Clustering with PCA with and without previous Scaling}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figs/PCA_scaled_variance.pdf}
+\includegraphics[width=\textwidth]{figs/PCA_not_scaled_variance.pdf}
+\includegraphics[width=0.54 \textwidth]{figs/PCA_2D_data.pdf}
+\includegraphics[width=0.45 \textwidth]{figs/PCA_3D_data.pdf}
+\caption{Top four plots show the explained variance for a PCA fit with different number of dimensions: top two obtained {\bf{with}} previous scaling while middle two obtained {\bf{without}} previous scaling. The bottom two plots show the data after doing PCA {\bf{without}} scaling when one picks 2D (left) and 3D (right) projections.}
+\label{PCA_parfigs}
+\end{figure}
+
+\clearpage
+
+\subsection{Clustering 2D PCA}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figs/PCA_2D_parfigs_1.pdf}
+\includegraphics[width=\textwidth]{figs/PCA_2D_parfigs_2.pdf}
+\includegraphics[width=\textwidth]{figs/PCA_2D_clusfigs_4_cluster.pdf}
+\caption{Top 4 plots show the explored parameters in the clustering of 2D PCA as functions of the number of clusters $k$. At the bottom, distribution of clusters in the PCA subspace and silhouette plot for the chosen number of clusters, $k = 4$.}
+\label{PCA_2D_parfigs}
+\end{figure}
+
+\clearpage
+
+\subsection{Clustering 3D PCA}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figs/PCA_3D_parfigs_1.pdf}
+\includegraphics[width=\textwidth]{figs/PCA_3D_parfigs_2.pdf}
+\includegraphics[width=\textwidth]{figs/PCA_3D_clusfigs_6_cluster.pdf}
+\caption{Top 4 plots show the explored parameters in the clustering of 3D PCA as functions of the number of clusters $k$. At the bottom, distribution of clusters in the PCA subspace and silhouette plot for the chosen number of clusters, $k = 6$.}
+\label{PCA_3D_parfigs}
+\end{figure}
+
+\clearpage
+
+\subsection{Clustering without PCA}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{figs/NO_PCA_parfigs_1.pdf}
+\includegraphics[width=\textwidth]{figs/NO_PCA_parfigs_2.pdf}
+\includegraphics[width=\textwidth]{figs/NO_PCA_clusfigs_8_cluster.pdf}
+\caption{Top 4 plots show the explored parameters in the clustering without PCA as functions of the number of clusters $k$. At the bottom, graphical distribution of the clusters and silhouette plot for the chosen number of clusters, $k = 8$.}
+\label{NO_PCA_parfigs}
+\end{figure}
+
+
+
+\section{Clustering Feature Plots} \label{ClFePl}
+
+Here we explore how every clustering we made covers the distinct features of the data set. We present 3 types of plots for each clustering:
+
+1) location plot with the cluster labels as colors,
+
+2) distribution of off day and work day calls in each cluster,
+
+and
+
+3) distribution of clusters in the categories of the \verb|Type| column.
+
+%%%%%%%%%%%%%%%%%%%% LOCATION
+\clearpage
+
+\subsection{Clustering Location only}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_loc_location.pdf}
+\caption{Geographical distribution of clusters when clustering location only.}
+\label{STORY_loc_location}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_loc_off_days.pdf}
+\caption{Distribution of off day and work day calls when clustering location only.}
+\label{STORY_loc_off_days}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.52]{figs/STORY_loc_type_1.pdf}
+\includegraphics[scale=0.52]{figs/STORY_loc_type_2.pdf}
+\caption{Distribution of clusters in the type of calls categories when clustering location only.}
+\label{STORY_loc_type}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%% 2D PCA
+\clearpage
+
+\subsection{Clustering 2D PCA}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_2D_PCA_location.pdf}
+\caption{Geographical distribution of clusters when clustering 2D PCA.}
+\label{STORY_2D_PCA_location}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_2D_PCA_off_days.pdf}
+\caption{Distribution of off day and work day calls when clustering 2D PCA.}
+\label{STORY_2D_PCA_off_days}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.52]{figs/STORY_2D_PCA_type_1.pdf}
+\includegraphics[scale=0.52]{figs/STORY_2D_PCA_type_2.pdf}
+\caption{Distribution of clusters in the type of calls categories when clustering 2D PCA.}
+\label{STORY_2D_PCA_type}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%% 3D PCA
+\clearpage
+
+\subsection{Clustering 3D PCA}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_3D_PCA_location.pdf}
+\caption{Geographical distribution of clusters when clustering 3D PCA.}
+\label{STORY_3D_PCA_location}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_3D_PCA_off_days.pdf}
+\caption{Distribution of off day and work day calls when clustering 3D PCA.}
+\label{STORY_3D_PCA_off_days}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.52]{figs/STORY_3D_PCA_type_1.pdf}
+\includegraphics[scale=0.52]{figs/STORY_3D_PCA_type_2.pdf}
+\caption{Distribution of clusters in the type of calls categories when clustering 3D PCA.}
+\label{STORY_3D_PCA_type}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%% NO PCA
+\clearpage
+
+\subsection{Clustering without PCA}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_NO_PCA_location.pdf}
+\caption{Geographical distribution of clusters when clustering without PCA.}
+\label{STORY_NO_PCA_location}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.6]{figs/STORY_NO_PCA_off_days.pdf}
+\caption{Distribution of off day and work day calls when clustering without PCA.}
+\label{STORY_NO_PCA_off_days}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering
+\includegraphics[scale=0.52]{figs/STORY_NO_PCA_type_1.pdf}
+\includegraphics[scale=0.52]{figs/STORY_NO_PCA_type_2.pdf}
+\caption{Distribution of clusters in the type of calls categories when clustering without PCA.}
+\label{STORY_NO_PCA_type}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%% END
 
 \end{document}
